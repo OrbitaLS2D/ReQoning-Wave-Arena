@@ -26,15 +26,15 @@ If you have Quake III `pak0`–`pak8` (and optional Team Arena data), **any Quak
 
 | Mode | How it plays |
 |---|---|
-| **Duel** | Popular Q3 / QL duel. **1v1.** 10 min, 125/0, G+MG, items on. Queue; winner stays. |
-| **FFA** | Popular Q3 / QL FFA. No teams; player cap is the server cap (default 64). Items on. 50 frags / time. Map decides extra guns (HMG / nail / chaingun). |
-| **CTF** | Popular Q3 / QL CTF. Default max team size **15** (admin can change). **The map specifies the loadout** (HMG / nail / chaingun only if placed). **Weapon respawn 1 second.** |
-| **Clan Arena (CA)** | Default QL CA. Default max team size **15** (admin can change). Full stack, no items, first to 10. Dead sit until the next round. |
-| **Insta FFA** | Instagib rail + instagib gauntlet. Same player cap as FFA. No ammo items. **Quad, regen, invis, and battlesuit still spawn.** |
-| **ReQoning Arena** | RA3-style stacked arena. **Starts 1v1, max 3v3.** No items, no self-dmg. Die → spec. Queue; winner(s) stay. |
-| **Freeze Tag** | Popular QL / Q3 FT. **Minimum start 2v2.** First to 8 (pub) / 10 (classic). Thaw ~3s. |
-| **Insta Freeze** | Insta FFA rules on teams. **Minimum start 2v2.** |
-| **ReQoning Freeze (`rfreeze`)** | Team freeze + insta rail + insta gaunt + **offhand grapple**. **Minimum start 2v2.** No ammo/armor/health. Powerups: invis, regen, quad, battlesuit. |
+| **Duel (`1v1`)**| Popular Q3 / QL duel. **1v1.** 10 min, 125/0, G+MG, items on. Queue; winner stays. |
+| **Free For All (`ffa`)**| Popular Q3 / QL FFA. No teams; player cap is the server cap (default 64). Items on. 50 frags / time. Map decides extra guns (HMG / nail / chaingun). |
+| **Capture The Flag (`ctf`)**| Popular Q3 / QL CTF. Default max team size **15** (admin can change). **The map specifies the loadout** (HMG / nail / chaingun only if placed). **Weapon respawn 1 second.** |
+| **Clan Arena (`ca`)**| Default QL CA. Default max team size **15** (admin can change). Full stack, no items, first to 10. Dead sit until the next round. |
+| **Insta FFA (`iffa`)**| Instagib rail + instagib gauntlet. Same player cap as FFA. No ammo items. **Quad, regen, invis, and battlesuit still spawn.** |
+| **ReQoning Arena (`ra`)**| RA3-style stacked arena. **Starts 1v1, max 3v3.** No items, no self-dmg. Die → spec. Queue; winner(s) stay. |
+| **Freeze Tag (`ft`)**| Popular QL / Q3 FT. **Minimum start 2v2.** First to 8 (pub) / 10 (classic). Thaw ~3s. |
+| **Insta Freeze (`ift`)**| Insta FFA rules on teams. **Minimum start 2v2.** |
+| **ReQoning Freeze (`rft`)** | Team freeze + insta rail + insta gaunt + **offhand grapple**. **Minimum start 2v2.** No ammo/armor/health. Powerups: invis, regen, quad, battlesuit. |
 
 ### Voting
 
