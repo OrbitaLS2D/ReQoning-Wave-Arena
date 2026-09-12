@@ -1,0 +1,6 @@
+[submodule "engine"]
+	path = engine
+	url = https://github.com/ec-/Quake3e.git
+[submodule "gamecode"]
+	path = gamecode
+	url = https://github.com/Kr3m/missionpackplus.git
