@@ -62,7 +62,7 @@ dirs:
 	         $(PREFIX)/idassets/missionpack \
 	         $(PREFIX)/maps
 
-install: dirs engine pak install-bins install-pak play.sh
+install: dirs engine pak install-bins install-pak play.sh install-docs
 
 install-bins: dirs
 	@for f in $(BINS); do \
@@ -77,6 +77,9 @@ install-pak: dirs $(PK3)
 	      $(PREFIX)/baserwa/z_ta.pk3
 	cp -v $(PK3) $(PREFIX)/baserwa/rwapak1.pk3
 	@if [ -d assets/ui ]; then mkdir -p $(PREFIX)/baserwa/ui && cp -a assets/ui/. $(PREFIX)/baserwa/ui/; fi
+
+install-docs: dirs
+	@if [ -f INSTALL.txt ]; then cp -v INSTALL.txt $(PREFIX)/README.txt; else echo "NOTE: no INSTALL.txt"; fi
 
 play.sh: dirs
 	@printf '%s\n' \

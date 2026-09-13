@@ -1,0 +1,148 @@
+ReQoning Wave Arena
+===================
+
+Arena FPS on Quake III Arena / Team Arena gamecode (Quake3e + missionpackplus).
+Homage to Quake III Arena, Team Arena, Rocket Arena, OSP, and Threewave.
+
+Not affiliated with id Software, Bethesda, Quake Live, or those mods.
+
+Gametypes are the popular Q3 / Quake Live rules. No runes. Fullbright skins.
+Queue on every mode. Q3 / QL / TA maps load if you have the files.
+
+Gametypes
+---------
+Duel   1v1, stock Q3/QL, queue
+FFA    free for all, stock Q3/QL
+CTF    capture the flag, stock Q3/QL; map decides extra guns (HMG/nail/chaingun);
+       weapon respawn 1
+CA     Clan Arena, QL-style, 4v4 and up
+IFFA   instagib FFA, rail + gauntlet
+RA     ReQoning Arena, 1v1 / 2v2 / 3v3, CA loadouts, die = spec, queue
+FT     freeze tag
+IFT    instagib freeze (team)
+RFT    ReQoning freeze: insta rail + gaunt, offhand grapple;
+       no items except invis, regen, quad, battlesuit
+
+Warmup uses that mode's weapons (and the map's extra guns in CTF).
+Scoreboard: [S] spectating, [AFK] away.
+
+Folder layout (required)
+------------------------
+Do not flatten this. Names matter.
+
+    RWA/
+    |-- reqwa.x64                      Linux client
+    |-- reqwa.ded.x64                  Linux dedicated
+    |-- reqwa_opengl_x86_64.so
+    |-- reqwa_vulkan_x86_64.so
+    |-- reqwa.x64.exe                  Windows client
+    |-- reqwa.ded.x64.exe
+    |-- reqwa_opengl_x86_64.dll
+    |-- reqwa_vulkan_x86_64.dll
+    |-- play.sh                        Linux launcher
+    |-- README.txt
+    |-- baserwa/
+    |   `-- rwapak1.pk3                ships with the game
+    |-- idassets/
+    |   |-- baseq3/                    YOU copy Q3 paks here
+    |   |   |-- pak0.pk3
+    |   |   |-- pak1.pk3
+    |   |   |-- pak2.pk3
+    |   |   |-- pak3.pk3
+    |   |   |-- pak4.pk3
+    |   |   |-- pak5.pk3
+    |   |   |-- pak6.pk3
+    |   |   |-- pak7.pk3
+    |   |   `-- pak8.pk3
+    |   `-- missionpack/               optional: Team Arena paks
+    |       |-- pak0.pk3
+    |       |-- pak1.pk3
+    |       |-- pak2.pk3
+    |       `-- pak3.pk3
+    `-- maps/                          extra map pk3s
+
+This game does not ship id art. You must own Quake III Arena.
+
+id assets
+---------
+REQUIRED — Quake III Arena 1.32 point release.
+
+Copy these files from a legitimate install (Steam, CD, GOG, etc.)
+into idassets/baseq3/ :
+
+    pak0.pk3
+    pak1.pk3
+    pak2.pk3
+    pak3.pk3
+    pak4.pk3
+    pak5.pk3
+    pak6.pk3
+    pak7.pk3
+    pak8.pk3
+
+Steam is usually:
+
+    steamapps/common/Quake 3 Arena/baseq3/pak0.pk3
+    steamapps/common/Quake 3 Arena/baseq3/pak1.pk3
+    steamapps/common/Quake 3 Arena/baseq3/pak2.pk3
+    steamapps/common/Quake 3 Arena/baseq3/pak3.pk3
+    steamapps/common/Quake 3 Arena/baseq3/pak4.pk3
+    steamapps/common/Quake 3 Arena/baseq3/pak5.pk3
+    steamapps/common/Quake 3 Arena/baseq3/pak6.pk3
+    steamapps/common/Quake 3 Arena/baseq3/pak7.pk3
+    steamapps/common/Quake 3 Arena/baseq3/pak8.pk3
+
+OPTIONAL — Team Arena.
+
+If you own it, copy these from the missionpack folder
+into idassets/missionpack/ (use whichever of these you have):
+
+    pak0.pk3
+    pak1.pk3
+    pak2.pk3
+    pak3.pk3
+
+Steam is usually:
+
+    steamapps/common/Quake 3 Arena/missionpack/pak0.pk3
+    steamapps/common/Quake 3 Arena/missionpack/pak1.pk3
+    steamapps/common/Quake 3 Arena/missionpack/pak2.pk3
+    steamapps/common/Quake 3 Arena/missionpack/pak3.pk3
+
+TA maps then work. The game still runs without the missionpack folder.
+
+Do not copy id vm/ files. This game uses baserwa/rwapak1.pk3.
+OSP, CPMA, and other mods are not loaded.
+
+Linux
+-----
+1. Unpack the Linux build (or run "make" from the source repo; it installs to ~/RWA).
+2. Copy pak0.pk3 through pak8.pk3 into idassets/baseq3/
+3. Optional: copy Team Arena pak0.pk3 through pak3.pk3 into idassets/missionpack/
+4. Run:
+
+     ~/RWA/play.sh
+
+   or:
+
+     cd ~/RWA
+     ./reqwa.x64 +set fs_basepath "$HOME/RWA" +set fs_homepath "$HOME/RWA"
+
+Windows
+-------
+1. Unpack the Windows build to a folder (example C:\RWA).
+2. Copy pak0.pk3 through pak8.pk3 into idassets\baseq3\
+3. Optional: copy Team Arena pak0.pk3 through pak3.pk3 into idassets\missionpack\
+4. Run reqwa.x64.exe
+
+Same folder names as Linux.
+
+Maps
+----
+Drop extra map pk3s in maps/. Servers can autodownload there too.
+
+Credits
+-------
+Engine: Quake3e
+Gamecode: missionpackplus
+Original games: id Software — Quake III Arena / Team Arena
