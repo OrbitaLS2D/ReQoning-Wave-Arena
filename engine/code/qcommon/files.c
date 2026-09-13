@@ -4824,6 +4824,13 @@ static void FS_Startup( void ) {
 		}
 	}
 
+	/* RWA: id assets + downloaded maps first (low priority) */
+	if (fs_basepath->string[0]) {
+		FS_AddGameDirectory( fs_basepath->string, "idassets/baseq3" );
+		FS_AddGameDirectory( fs_basepath->string, "idassets/missionpack" );
+		FS_AddGameDirectory( fs_basepath->string, "maps" );
+	}
+
 	if (fs_basepath->string[0]) {
 		// handle multiple basegames:
 		for (i = 0; i < basegame_cnt; i++) {
@@ -4975,7 +4982,8 @@ static void FS_CheckIdPaks( void )
 			}
 		}
 
-		else if(!Q_stricmpn( path->pack->pakGamename, BASEGAME, MAX_OSPATH )
+		else if ( ( !Q_stricmpn( path->pack->pakGamename, BASEGAME, MAX_OSPATH )
+			|| !Q_stricmpn( path->pack->pakGamename, "idassets/baseq3", MAX_OSPATH ) )
 			&& strlen(pakBasename) == 4 && !Q_stricmpn( pakBasename, "pak", 3 )
 			&& pakBasename[3] >= '0' && pakBasename[3] <= '8')
 		{
