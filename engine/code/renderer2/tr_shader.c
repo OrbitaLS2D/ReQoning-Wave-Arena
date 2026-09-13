@@ -3835,12 +3835,14 @@ it and returns a valid (possibly default) shader_t to be used internally.
 ====================
 */
 shader_t *R_GetShaderByHandle( qhandle_t hShader ) {
-	if ( hShader < 0 ) {
-	  ri.Printf( PRINT_WARNING, "R_GetShaderByHandle: out of range hShader '%d'\n", hShader );
-		return tr.defaultShader;
-	}
-	if ( hShader >= tr.numShaders ) {
-		ri.Printf( PRINT_WARNING, "R_GetShaderByHandle: out of range hShader '%d'\n", hShader );
+	/* RWA: TA/menu garbage handles used to print this every frame */
+	if ( hShader < 0 || hShader >= tr.numShaders ) {
+		static int lastWarn = 0;
+		int now = ri.Milliseconds();
+		if ( now - lastWarn > 5000 ) {
+			ri.Printf( PRINT_DEVELOPER, "R_GetShaderByHandle: out of range hShader '%d'\n", hShader );
+			lastWarn = now;
+		}
 		return tr.defaultShader;
 	}
 	return tr.shaders[hShader];
