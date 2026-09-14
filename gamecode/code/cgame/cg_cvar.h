@@ -131,7 +131,11 @@ CG_CVAR( cg_teamColors, "cg_teamColors", "", CVAR_ARCHIVE )
 CG_CVAR( cg_deadBodyDarken, "cg_deadBodyDarken", "1", CVAR_ARCHIVE )
 CG_CVAR( cg_fovAdjust, "cg_fovAdjust", "0", CVAR_ARCHIVE )
 CG_CVAR( cg_followKiller, "cg_followKiller", "0", CVAR_ARCHIVE )
+/* RWA-UNLAGGED: predicted hitscan (1=all 2=sg 4=mg 16=rail) */
 CG_CVAR( cg_delag, "cg_delag", "1", CVAR_ARCHIVE )
+/* RWA-UNLAGGED: rewind AABB debug — cheats only */
+CG_CVAR( cg_drawBBox, "cg_drawBBox", "0", CVAR_CHEAT )
+/* RWA-UNLAGGED: rocket/plasma visual nudge */
 CG_CVAR( cg_projectileNudge, "cg_projectileNudge", "0", CVAR_ARCHIVE )
 
 #undef CG_CVAR

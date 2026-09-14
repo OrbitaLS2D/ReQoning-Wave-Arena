@@ -144,7 +144,7 @@ void CG_ParseServerinfo( void ) {
 	cgs.g_sgPellets = atoi(Info_ValueForKey(info, "g_sgPellets"));
 	mapname = Info_ValueForKey( info, "mapname" );
 	Com_sprintf( cgs.mapname, sizeof( cgs.mapname ), "maps/%s.bsp", mapname );
-	cgs.g_unlagged = atoi( Info_ValueForKey( info, "g_unlagged" ) );
+	cgs.g_unlagged = atoi( Info_ValueForKey( info, "g_unlagged" ) ); /* RWA-UNLAGGED */
     Q_strncpyz( cgs.redTeam, Info_ValueForKey( info, "g_redteam" ), sizeof(cgs.redTeam) );
 
     if( cgs.redTeam[0] == '\0' ) {

@@ -981,7 +981,11 @@ void CG_EntityEvent( centity_t *cent, vec3_t position, int entityNum ) {
 		CG_MissileHitWall( es->weapon, 0, position, dir, IMPACTSOUND_METAL );
 		break;
 
-	case EV_RAILTRAIL:
+	case EV_RAILTRAIL: /* RWA-UNLAGGED: skip if we already predicted it */
+		if ( es->clientNum == cg.predictedPlayerState.clientNum &&
+			cgs.g_unlagged && ( cg_delag.integer & 1 || cg_delag.integer & 16 ) ) {
+			break;
+		}
 		cent->currentState.weapon = WP_RAILGUN;
 
 		if ( cent->currentState.clientNum == cg.snap->ps.clientNum && !cg_thirdPerson.integer ) 
@@ -1006,16 +1010,28 @@ void CG_EntityEvent( centity_t *cent, vec3_t position, int entityNum ) {
 		}
 		break;
 
-	case EV_BULLET_HIT_WALL:
+	case EV_BULLET_HIT_WALL: /* RWA-UNLAGGED: skip if predicted */
+		if ( es->otherEntityNum == cg.predictedPlayerState.clientNum &&
+			cgs.g_unlagged && ( cg_delag.integer & 1 || cg_delag.integer & 4 ) ) {
+			break;
+		}
 		ByteToDir( es->eventParm, dir );
 		CG_Bullet( es->pos.trBase, es->otherEntityNum, dir, qfalse, ENTITYNUM_WORLD );
 		break;
 
-	case EV_BULLET_HIT_FLESH:
+	case EV_BULLET_HIT_FLESH: /* RWA-UNLAGGED: skip if predicted */
+		if ( es->otherEntityNum == cg.predictedPlayerState.clientNum &&
+			cgs.g_unlagged && ( cg_delag.integer & 1 || cg_delag.integer & 4 ) ) {
+			break;
+		}
 		CG_Bullet( es->pos.trBase, es->otherEntityNum, dir, qtrue, es->eventParm );
 		break;
 
-	case EV_SHOTGUN:
+	case EV_SHOTGUN: /* RWA-UNLAGGED: skip if predicted */
+		if ( es->otherEntityNum == cg.predictedPlayerState.clientNum &&
+			cgs.g_unlagged && ( cg_delag.integer & 1 || cg_delag.integer & 2 ) ) {
+			break;
+		}
 		CG_ShotgunFire( es );
 		break;
 

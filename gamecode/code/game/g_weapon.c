@@ -187,7 +187,7 @@ static void Bullet_Fire( gentity_t *ent, float spread, int damage, int mod ) {
 	for ( i = 0; i < 10; i++ ) {
 
 		// unlagged
-		G_DoTimeShiftFor( ent );
+		G_DoTimeShiftFor( ent ); /* RWA-UNLAGGED */
 
 		trap_Trace( &tr, muzzle_origin, NULL, NULL, end, passent, MASK_SHOT );
 
@@ -344,7 +344,7 @@ static void ShotgunPattern( const vec3_t origin, const vec3_t origin2, int seed,
 	CrossProduct( forward, right, up );
 
 	// unlagged
-	G_DoTimeShiftFor( ent );
+	G_DoTimeShiftFor( ent ); /* RWA-UNLAGGED */
 
 	// generate the "random" spread pattern
 	for ( i = 0 ; i < g_sgPellets.integer ; i++ ) {
@@ -473,7 +473,7 @@ void weapon_railgun_fire( gentity_t *ent ) {
 	VectorMA( muzzle_origin, 8192.0, forward, end );
 
 	// unlagged
-	G_DoTimeShiftFor( ent );
+	G_DoTimeShiftFor( ent ); /* RWA-UNLAGGED */
 
 	// trace only against the solids, so the railgun will go through people
 	unlinked = 0;
@@ -758,7 +758,7 @@ void Weapon_LightningFire( gentity_t *ent ) {
 		VectorMA( muzzle_origin, LIGHTNING_RANGE, forward, end );
 
 		// unlagged
-		G_DoTimeShiftFor( ent );
+		G_DoTimeShiftFor( ent ); /* RWA-UNLAGGED */
 
 		trap_Trace( &tr, muzzle_origin, NULL, NULL, end, passent, MASK_SHOT );
 

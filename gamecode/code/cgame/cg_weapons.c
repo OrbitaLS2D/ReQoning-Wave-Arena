@@ -1837,7 +1837,7 @@ void CG_FireWeapon( centity_t *cent ) {
 	// mark the entity as muzzle flashing, so when it is added it will
 	// append the flash to the weapon model
 	cent->muzzleFlashTime = cg.time;
-	CG_PredictWeaponEffects( cent );
+	CG_PredictWeaponEffects( cent ); /* RWA-UNLAGGED: instant local tracers */
 	// lightning gun only does this this on initial press
 	if ( ent->weapon == WP_LIGHTNING ) {
 		if ( cent->pe.lightningFiring ) {
@@ -2186,7 +2186,8 @@ Perform the same traces the server did to locate the
 hit splashes
 ================
 */
-static void CG_ShotgunPattern( vec3_t origin, vec3_t origin2, int seed, int otherEntNum ) {
+/* RWA-UNLAGGED: not static — called from cg_unlagged.c */
+void CG_ShotgunPattern( vec3_t origin, vec3_t origin2, int seed, int otherEntNum ) {
 	int			i;
 	float		r, u;
 	vec3_t		end;

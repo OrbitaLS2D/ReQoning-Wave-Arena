@@ -1209,7 +1209,7 @@ void ClientEndFrame( gentity_t *ent ) {
 	}
 
 	// unlagged
-	G_StoreHistory( ent );
+	G_StoreHistory( ent ); /* RWA-UNLAGGED */
 
 	// hitsounds
 	if ( client->damage.enemy && client->damage.amount ) {

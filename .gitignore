@@ -1,0 +1,5 @@
+/build/
+/engine/build/
+/gamecode/build/linux-qvm/vm/
+*.pk3
+fix-unlagged.py

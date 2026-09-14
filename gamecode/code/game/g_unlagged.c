@@ -4,6 +4,8 @@
 
 #include "g_local.h"
 
+/* RWA-UNLAGGED: SERVER — rewind history / time shift. Entire file. */
+
 /*
 ============
 G_ResetHistory

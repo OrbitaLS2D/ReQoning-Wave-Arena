@@ -1078,7 +1078,7 @@ void ClientSpawn(gentity_t *ent) {
 	flags ^= EF_TELEPORT_BIT;
 
 	// unlagged
-	G_ResetHistory( ent );
+	G_ResetHistory( ent ); /* RWA-UNLAGGED */
 	client->saved.leveltime = 0;
 
 	// clear everything but the persistant data
