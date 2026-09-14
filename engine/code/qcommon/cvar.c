@@ -593,13 +593,46 @@ Cvar_Print
 Prints the value, default, and latched string of the given variable
 ============
 */
+static const char *Cvar_GTAcronym( int gt ) { /* RWA-GT */
+	static const char *n[] = { "ffa","duel","sp","tdm","ctf","1fctf","overload","harvester" };
+	if ( gt < 0 || gt > 7 ) return "?";
+	return n[gt];
+}
+static const char *Cvar_GTDesc( int gt ) { /* RWA-GT */
+	static const char *d[] = {
+		"Free-for-All deathmatch",
+		"1-on-1 tournament",
+		"Single-player vs bots",
+		"Team deathmatch",
+		"Capture the flag",
+		"One flag, cap at your base",
+		"Destroy the enemy obelisk",
+		"Collect skulls"
+	};
+	if ( gt < 0 || gt > 7 ) return "";
+	return d[gt];
+}
+
 static void Cvar_Print( const cvar_t *v ) {
 
-	Com_Printf ("\"%s\" is:\"%s" S_COLOR_WHITE "\"",
-		v->name, v->string );
+	if ( !Q_stricmp( v->name, "g_gametype" ) ) {
+		int cur = atoi( v->string );
+		int def = atoi( v->resetString );
+		Com_Printf( "\"g_gametype\" is:\"%s" S_COLOR_WHITE "\" (%s)  default:\"%s" S_COLOR_WHITE "\" (%s)\n",
+			v->string, Cvar_GTAcronym( cur ), v->resetString, Cvar_GTAcronym( def ) );
+		Com_Printf( "^7  %s\n", Cvar_GTDesc( cur ) );
+		if ( v->latchedString ) {
+			Com_Printf( "^3latched:^7 ^2\"%s\"^7 (^5%s^7)\n", v->latchedString,
+				Cvar_GTAcronym( atoi( v->latchedString ) ) );
+		}
+		return;
+	}
+
+	Com_Printf ("^5%s^7 is:^2\"%s" S_COLOR_WHITE "\"",
+		v->name, v->string ); /* RWA-VER: osp-style cvar dump, never ^0 */
 
 	if ( !( v->flags & CVAR_ROM ) ) {
-		Com_Printf (" default:\"%s" S_COLOR_WHITE "\"",
+		Com_Printf (" default:^3\"%s" S_COLOR_WHITE "\"",
 			v->resetString );
 	}
 #ifdef _DEBUG

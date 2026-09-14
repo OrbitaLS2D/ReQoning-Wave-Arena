@@ -6,6 +6,7 @@
 // second version that must match between game and cgame
 
 #define	GAME_VERSION		"baserwa-1"
+#define	RWA_GAMECODE_VERSION	"0.2.0" /* RWA-VER */
 
 #define	DEFAULT_GRAVITY		800
 #define	GIB_HEALTH			-40

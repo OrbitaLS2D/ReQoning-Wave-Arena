@@ -61,6 +61,27 @@ CG_Viewpos_f
 Debugging command to print the current position
 =============
 */
+
+static void CG_GT_f( void ) { /* RWA-GT: client can always see mode */
+	static const char *n[] = { "ffa","duel","sp","tdm","ctf","1fctf","overload","harvester" };
+	static const char *d[] = {
+		"Free-for-All deathmatch",
+		"1-on-1 tournament",
+		"Single-player vs bots",
+		"Team deathmatch",
+		"Capture the flag",
+		"One flag, cap at your base",
+		"Destroy the enemy obelisk",
+		"Collect skulls"
+	};
+	int gt = cgs.gametype;
+	if ( gt < 0 || gt > 7 ) {
+		CG_Printf( "gametype is: ^1\"%d\"^7 (?)\n", gt );
+		return;
+	}
+	CG_Printf( "gametype is: ^2\"%d\"^7 (^5%s^7) - %s\n", gt, n[gt], d[gt] );
+}
+
 static void CG_Viewpos_f (void) {
 	CG_Printf ("(%i %i %i) : %i\n", (int)cg.refdef.vieworg[0],
 		(int)cg.refdef.vieworg[1], (int)cg.refdef.vieworg[2], 
@@ -480,6 +501,7 @@ static consoleCommand_t	commands[] = {
 	{ "prevframe", CG_TestModelPrevFrame_f },
 	{ "nextskin", CG_TestModelNextSkin_f },
 	{ "prevskin", CG_TestModelPrevSkin_f },
+	{ "gt", CG_GT_f },
 	{ "viewpos", CG_Viewpos_f },
 	{ "+scores", CG_ScoresDown_f },
 	{ "-scores", CG_ScoresUp_f },

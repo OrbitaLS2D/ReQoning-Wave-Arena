@@ -238,6 +238,254 @@ void G_RemapTeamShaders( void ) {
 G_RegisterCvars
 =================
 */
+
+/* RWA: acronyms in, numbers stored. Arena type is enforced when present. */
+int G_GametypeForName( const char *s ) { /* RWA-GT: acronym -> GT_ number */
+	char buf[32];
+	int i, n;
+	static const char *names[] = {
+		"ffa", "duel", "tourney", "tournament", "1v1",
+		"sp", "tdm", "team", "ctf",
+#ifdef MISSIONPACK
+		"1fctf", "overload", "obelisk", "harvester", "harvest",
+#endif
+	};
+	static const int gts[] = {
+		GT_FFA, GT_TOURNAMENT, GT_TOURNAMENT, GT_TOURNAMENT, GT_TOURNAMENT,
+		GT_SINGLE_PLAYER, GT_TEAM, GT_TEAM, GT_CTF,
+#ifdef MISSIONPACK
+		GT_1FCTF, GT_OBELISK, GT_OBELISK, GT_HARVESTER, GT_HARVESTER,
+#endif
+	};
+
+	if ( !s || !s[0] ) {
+		return -1;
+	}
+	Q_strncpyz( buf, s, sizeof( buf ) );
+	Q_strlwr( buf );
+	if ( buf[0] >= '0' && buf[0] <= '9' ) {
+		n = atoi( buf );
+		if ( n == GT_SINGLE_PLAYER || n < 0 || n >= GT_MAX_GAME_TYPE ) {
+			return -1;
+		}
+		return n;
+	}
+	for ( i = 0; i < (int)ARRAY_LEN( names ); i++ ) {
+		if ( !Q_stricmp( buf, names[i] ) ) {
+			return gts[i];
+		}
+	}
+	return -1;
+}
+
+const char *G_NameForGametype( int gt ) {
+	switch ( gt ) {
+	case GT_FFA:           return "FFA";
+	case GT_TOURNAMENT:    return "DUEL";
+	case GT_SINGLE_PLAYER: return "SP";
+	case GT_TEAM:          return "TDM";
+	case GT_CTF:           return "CTF";
+#ifdef MISSIONPACK
+	case GT_1FCTF:         return "1FCTF";
+	case GT_OBELISK:       return "OVERLOAD";
+	case GT_HARVESTER:     return "HARVESTER";
+#endif
+	default:               return "?";
+	}
+}
+
+static const char *G_ArenaTokenForGT( int gt ) {
+	switch ( gt ) {
+	case GT_FFA:           return "ffa";
+	case GT_TOURNAMENT:    return "tourney";
+	case GT_SINGLE_PLAYER: return "single";
+	case GT_TEAM:          return "team";
+	case GT_CTF:           return "ctf";
+#ifdef MISSIONPACK
+	case GT_1FCTF:         return "oneflag"; /* RWA-GT: id token, not ctf1 */
+	case GT_OBELISK:       return "overload";
+	case GT_HARVESTER:     return "harvester";
+#endif
+	default:               return "ffa";
+	}
+}
+
+qboolean G_TypeListHas( const char *list, const char *tok ) {
+	char w[32];
+	int i;
+	if ( !list || !tok ) {
+		return qfalse;
+	}
+	while ( *list ) {
+		while ( *list == ' ' || *list == '\t' ) {
+			list++;
+		}
+		i = 0;
+		while ( *list && *list != ' ' && *list != '\t' && i < (int)sizeof(w) - 1 ) {
+			w[i++] = *list++;
+		}
+		w[i] = '\0';
+		if ( w[0] && !Q_stricmp( w, tok ) ) {
+			return qtrue;
+		}
+	}
+	return qfalse;
+}
+
+static qboolean G_ScanArenaBuf( char *buf, const char *map, char *typeOut, int typeSize ) {
+	char *p, *blk, *end, *m, *t, *q1, *q2;
+	int in, n;
+	p = buf;
+	while ( ( blk = strchr( p, '{' ) ) != NULL ) {
+		end = strchr( blk, '}' );
+		if ( !end ) {
+			break;
+		}
+		*end = '\0';
+		m = strstr( blk, "map" );
+		in = 0;
+		if ( m ) {
+			q1 = strchr( m, '"' );
+			if ( q1 ) {
+				q2 = strchr( q1 + 1, '"' );
+				if ( q2 ) {
+					*q2 = '\0';
+					if ( !Q_stricmp( q1 + 1, map ) ) {
+						in = 1;
+					}
+					*q2 = '"';
+				}
+			}
+		}
+		if ( in ) {
+			typeOut[0] = '\0';
+			t = strstr( blk, "type" );
+			if ( t ) {
+				q1 = strchr( t, '"' );
+				if ( q1 ) {
+					q2 = strchr( q1 + 1, '"' );
+					if ( q2 ) {
+						n = q2 - ( q1 + 1 );
+						if ( n >= typeSize ) {
+							n = typeSize - 1;
+						}
+						Q_strncpyz( typeOut, q1 + 1, n + 1 );
+					}
+				}
+			}
+			*end = '}';
+			return qtrue;
+		}
+		*end = '}';
+		p = end + 1;
+	}
+	return qfalse;
+}
+
+qboolean G_ArenaAllowsGametype( const char *map, int gt ) { /* RWA-GT: no arena = allow */
+	static char buf[65536]; /* RWA-GT: QVM 32k local limit */
+	static char list[4096];
+	char type[128];
+	char fname[MAX_QPATH];
+	fileHandle_t f;
+	int len, nfiles, i;
+	char *p;
+
+	if ( !map || !map[0] ) {
+		return qtrue;
+	}
+	type[0] = '\0';
+
+	len = trap_FS_FOpenFile( "scripts/arenas.txt", &f, FS_READ );
+	if ( len > 0 && f ) {
+		if ( len >= (int)sizeof( buf ) ) {
+			len = (int)sizeof( buf ) - 1;
+		}
+		trap_FS_Read( buf, len, f );
+		trap_FS_FCloseFile( f );
+		buf[len] = '\0';
+		if ( G_ScanArenaBuf( buf, map, type, sizeof( type ) ) ) {
+			goto have;
+		}
+	}
+
+	nfiles = trap_FS_GetFileList( "scripts", ".arena", list, sizeof( list ) );
+	p = list;
+	for ( i = 0; i < nfiles && *p; i++ ) {
+		Com_sprintf( fname, sizeof( fname ), "scripts/%s", p );
+		p += strlen( p ) + 1;
+		len = trap_FS_FOpenFile( fname, &f, FS_READ );
+		if ( len <= 0 || !f ) {
+			continue;
+		}
+		if ( len >= (int)sizeof( buf ) ) {
+			len = (int)sizeof( buf ) - 1;
+		}
+		trap_FS_Read( buf, len, f );
+		trap_FS_FCloseFile( f );
+		buf[len] = '\0';
+		if ( G_ScanArenaBuf( buf, map, type, sizeof( type ) ) ) {
+			goto have;
+		}
+	}
+	return qtrue; /* no arena → allow */
+
+have:
+	/* RWA-GT: ffa/duel/sp/tdm on any map; objective modes need arena type */
+	if ( gt == GT_FFA || gt == GT_TOURNAMENT || gt == GT_SINGLE_PLAYER || gt == GT_TEAM ) {
+		return qtrue;
+	}
+	if ( !Q_stricmp( map, "test_bigbox" ) ) {
+		return qfalse; /* RWA-GT: debug map, ffa-family only */
+	}
+	if ( !type[0] ) {
+		return qfalse; /* RWA-GT: no type = not objective */
+	}
+	if ( G_TypeListHas( type, G_ArenaTokenForGT( gt ) ) ) {
+		return qtrue;
+	}
+	/* RWA-GT: 1fctf is a ctf layout; arenas often only say ctf */
+	if ( gt == GT_1FCTF && G_TypeListHas( type, "ctf" ) ) {
+		return qtrue;
+	}
+	if ( gt == GT_1FCTF && G_TypeListHas( type, "oneflag" ) ) {
+		return qtrue;
+	}
+	return qfalse;
+}
+
+
+int G_HomeGametype( const char *map ) { /* RWA-GT: intended mode */
+	if ( G_ArenaAllowsGametype( map, GT_CTF ) )
+		return GT_CTF;
+#ifdef MISSIONPACK
+	if ( G_ArenaAllowsGametype( map, GT_1FCTF ) )
+		return GT_1FCTF;
+	if ( G_ArenaAllowsGametype( map, GT_OBELISK ) )
+		return GT_OBELISK;
+	if ( G_ArenaAllowsGametype( map, GT_HARVESTER ) )
+		return GT_HARVESTER;
+#endif
+	return GT_FFA;
+}
+
+void G_NormalizeGametype( void ) { /* RWA-GT */
+	int gt;
+	char num[16];
+	gt = G_GametypeForName( g_gametype.string );
+	if ( gt < 0 ) {
+		G_Printf( "unknown g_gametype \"%s\", defaulting to FFA\n", g_gametype.string );
+		gt = GT_FFA;
+	}
+	Com_sprintf( num, sizeof( num ), "%d", gt );
+	if ( g_gametype.integer == gt && !Q_stricmp( g_gametype.string, num ) ) {
+		return;
+	}
+	trap_Cvar_Set( "g_gametype", num );
+	trap_Cvar_Update( &g_gametype );
+	G_Printf( "gametype: %s (%d)\n", G_NameForGametype( gt ), gt );
+}
+
 void G_RegisterCvars( void ) {
 	qboolean remapped = qfalse;
 	cvarTable_t *cv;
@@ -259,11 +507,7 @@ void G_RegisterCvars( void ) {
 	}
 
 	// check some things
-	if ( g_gametype.integer < 0 || g_gametype.integer >= GT_MAX_GAME_TYPE ) {
-		G_Printf( "g_gametype %i is out of range, defaulting to 0\n", g_gametype.integer );
-		trap_Cvar_Set( "g_gametype", "0" );
-		trap_Cvar_Update( &g_gametype );
-	}
+	G_NormalizeGametype();
 
 	level.warmupModificationCount = g_warmup.modificationCount;
 
@@ -504,6 +748,9 @@ static void G_UpdateCvars( void ) {
 			trap_Cvar_Update( cv->vmCvar );
 
 			if ( cv->modificationCount != cv->vmCvar->modificationCount ) {
+				if ( cv->vmCvar == &g_gametype ) {
+					G_NormalizeGametype();
+				}
 				cv->modificationCount = cv->vmCvar->modificationCount;
 
 				if ( cv->trackChange ) {
@@ -608,6 +855,7 @@ static void G_InitGame( int levelTime, int randomSeed, int restart ) {
 	G_Printf ("------- Game Initialization -------\n");
 	G_Printf ("gamename: %s\n", GAMEVERSION);
 	G_Printf ("gamedate: %s\n", __DATE__);
+	G_Printf ("RWA gamecode %s  %s\n", RWA_GAMECODE_VERSION, __DATE__); /* RWA-VER */
 
 	// extension interface
 	trap_Cvar_VariableStringBuffer( "//trap_GetValue", value, sizeof( value ) );
@@ -1916,6 +2164,11 @@ static void CheckVote( void ) {
 		 if ( level.voteExecuteTime < level.time ) {
 			level.voteExecuteTime = 0;
 			trap_SendConsoleCommand( EXEC_APPEND, va( "%s\n", level.voteString ) );
+			/* RWA-CV: gt-only vote applies now */
+			if ( !Q_strncmp( level.voteString, "g_gametype ", 11 )
+				&& !strstr( level.voteString, "map " ) ) {
+				trap_SendConsoleCommand( EXEC_APPEND, "map_restart\n" );
+			}
 		 }
 		 return;
 	}

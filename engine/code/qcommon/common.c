@@ -4908,6 +4908,21 @@ static void Field_CompleteCvarValue( const char *value, const char *current )
 Field_CompleteFilename
 ===============
 */
+
+static qboolean (*completeSkip)( const char *s ) = NULL; /* RWA-CV */
+
+static void FindMatchesSkip( const char *s ) {
+	if ( completeSkip && completeSkip( s ) )
+		return;
+	FindMatches( s );
+}
+
+static void PrintMatchesSkip( const char *s ) {
+	if ( completeSkip && completeSkip( s ) )
+		return;
+	PrintMatches( s );
+}
+
 void Field_CompleteFilename( const char *dir, const char *ext, qboolean stripExt, int flags )
 {
 	matchCount = 0;
@@ -4925,6 +4940,17 @@ void Field_CompleteFilename( const char *dir, const char *ext, qboolean stripExt
 Field_CompleteCommand
 ===============
 */
+void Field_CompleteFilenameSkip( const char *dir, const char *ext, qboolean stripExt, int flags, qboolean (*skip)(const char *s) ) { /* RWA-CV */
+	matchCount = 0;
+	shortestMatch[0] = '\0';
+	completeSkip = skip;
+	FS_FilenameCompletion( dir, ext, stripExt, FindMatchesSkip, flags );
+	if ( !Field_Complete() )
+		FS_FilenameCompletion( dir, ext, stripExt, PrintMatchesSkip, flags );
+	completeSkip = NULL;
+}
+
+
 void Field_CompleteCommand( const char *cmd, qboolean doCommands, qboolean doCvars )
 {
 	int	completionArgument;

@@ -151,6 +151,173 @@ SV_Map_f
 Restart the server on a different map
 ==================
 */
+
+/* RWA: map <name> [gt]; enforce arena type when the map has one. */
+static int SV_GametypeForName( const char *s ) { /* RWA-GT */
+	int i;
+	static const char *names[] = {
+		"ffa", "duel", "tourney", "tournament", "1v1",
+		"sp", "tdm", "team", "ctf",
+		"1fctf", "overload", "obelisk", "harvester", "harvest"
+	};
+	static const int gts[] = { 0,1,1,1,1, 2,3,3,4, 5,6,6,7,7 };
+	char buf[32];
+	if ( !s || !s[0] ) {
+		return -1;
+	}
+	Q_strncpyz( buf, s, sizeof( buf ) );
+	Q_strlwr( buf );
+	if ( buf[0] >= '0' && buf[0] <= '9' ) {
+		i = atoi( buf );
+		if ( i < 0 || i > 7 || i == 2 ) {
+			return -1;
+		}
+		return i;
+	}
+	for ( i = 0; i < (int)ARRAY_LEN( names ); i++ ) {
+		if ( !Q_stricmp( buf, names[i] ) ) {
+			return gts[i];
+		}
+	}
+	return -1;
+}
+
+static const char *SV_ArenaTokenForGT( int gt ) {
+	static const char *tok[] = { "ffa","tourney","single","team","ctf","ctf1","overload","harvester" };
+	if ( gt < 0 || gt > 7 ) {
+		return "ffa";
+	}
+	return tok[gt];
+}
+
+static qboolean SV_TypeListHas( const char *list, const char *tok ) {
+	char w[32];
+	int i;
+	if ( !list || !tok ) {
+		return qfalse;
+	}
+	while ( *list ) {
+		while ( *list == ' ' || *list == '\t' ) list++;
+		i = 0;
+		while ( *list && *list != ' ' && *list != '\t' && i < (int)sizeof(w)-1 ) {
+			w[i++] = *list++;
+		}
+		w[i] = 0;
+		if ( w[0] && !Q_stricmp( w, tok ) ) {
+			return qtrue;
+		}
+	}
+	return qfalse;
+}
+
+static qboolean SV_ScanArenaBuf( char *buf, const char *map, char *typeOut, int typeSize ) {
+	char *p, *blk, *end, *m, *t, *q1, *q2;
+	int in, n;
+	p = buf;
+	while ( ( blk = strchr( p, '{' ) ) != NULL ) {
+		end = strchr( blk, '}' );
+		if ( !end ) break;
+		*end = 0;
+		in = 0;
+		m = strstr( blk, "map" );
+		if ( m ) {
+			q1 = strchr( m, '"' );
+			if ( q1 ) {
+				q2 = strchr( q1 + 1, '"' );
+				if ( q2 ) {
+					*q2 = 0;
+					if ( !Q_stricmp( q1 + 1, map ) ) in = 1;
+					*q2 = '"';
+				}
+			}
+		}
+		if ( in ) {
+			typeOut[0] = 0;
+			t = strstr( blk, "type" );
+			if ( t ) {
+				q1 = strchr( t, '"' );
+				if ( q1 ) {
+					q2 = strchr( q1 + 1, '"' );
+					if ( q2 ) {
+						n = (int)( q2 - ( q1 + 1 ) );
+						if ( n >= typeSize ) n = typeSize - 1;
+						Q_strncpyz( typeOut, q1 + 1, n + 1 );
+					}
+				}
+			}
+			*end = '}';
+			return qtrue;
+		}
+		*end = '}';
+		p = end + 1;
+	}
+	return qfalse;
+}
+
+static qboolean SV_ArenaAllowsGametype( const char *map, int gt ) { /* RWA-GT */
+	char buf[65536];
+	char list[4096];
+	char type[128];
+	char fname[MAX_QPATH];
+	fileHandle_t f;
+	int len, nfiles, i;
+	char *p;
+
+	type[0] = 0;
+	len = FS_FOpenFileRead( "scripts/arenas.txt", &f, qfalse );
+	if ( len > 0 && f ) {
+		if ( len >= (int)sizeof( buf ) ) len = (int)sizeof( buf ) - 1;
+		FS_Read( buf, len, f );
+		FS_FCloseFile( f );
+		buf[len] = 0;
+		if ( SV_ScanArenaBuf( buf, map, type, sizeof( type ) ) ) {
+			goto have;
+		}
+	}
+	nfiles = FS_GetFileList( "scripts", ".arena", list, sizeof( list ) );
+	p = list;
+	for ( i = 0; i < nfiles && *p; i++ ) {
+		Com_sprintf( fname, sizeof( fname ), "scripts/%s", p );
+		p += strlen( p ) + 1;
+		len = FS_FOpenFileRead( fname, &f, qfalse );
+		if ( len <= 0 || !f ) continue;
+		if ( len >= (int)sizeof( buf ) ) len = (int)sizeof( buf ) - 1;
+		FS_Read( buf, len, f );
+		FS_FCloseFile( f );
+		buf[len] = 0;
+		if ( SV_ScanArenaBuf( buf, map, type, sizeof( type ) ) ) {
+			goto have;
+		}
+	}
+	return qtrue;
+have:
+	/* RWA-GT: ffa/duel/sp/tdm may run on any map (incl. ctf).
+	   ctf/1fctf/overload/harvester require the arena type token. */
+	if ( gt <= 3 ) {
+		return qtrue;
+	}
+	if ( !Q_stricmp( map, "test_bigbox" ) ) {
+		return qfalse; /* RWA-GT: debug map, ffa-family only */
+	}
+	if ( !type[0] ) {
+		return qfalse; /* RWA-GT: no type = not objective */
+	}
+	if ( SV_TypeListHas( type, SV_ArenaTokenForGT( gt ) ) ) return qtrue;
+	return qfalse;
+}
+
+static int SV_HomeGametype( const char *map ) { /* RWA-GT: ctf > 1fctf > ovld > harv > ffa */
+	if ( SV_ArenaAllowsGametype( map, 4 ) )
+		return 4;
+	if ( SV_ArenaAllowsGametype( map, 5 ) )
+		return 5;
+	if ( SV_ArenaAllowsGametype( map, 6 ) )
+		return 6;
+	if ( SV_ArenaAllowsGametype( map, 7 ) )
+		return 7;
+	return 0;
+}
+
 static void SV_Map_f( void ) {
 	const char		*cmd;
 	const char		*map;
@@ -161,12 +328,33 @@ static void SV_Map_f( void ) {
 
 	map = Cmd_Argv(1);
 	if ( !map || !*map ) {
+		Com_Printf( "Usage: map <mapname> [gt]\\n" );
 		return;
 	}
 
-	// make sure the level exists before trying to change, so that
-	// a typo at the server console won't end the game
-	Com_sprintf( expanded, sizeof( expanded ), "maps/%s.bsp", map );
+	/* RWA-GT: arena check first. argv2 sets gt; otherwise keep current. */
+	{
+		int gtnow;
+		if ( Cmd_Argc() >= 3 ) {
+			gtnow = SV_GametypeForName( Cmd_Argv( 2 ) );
+			if ( gtnow < 0 ) {
+				Com_Printf( "Unknown gametype '%s'\n", Cmd_Argv( 2 ) );
+				return;
+			}
+		} else {
+			gtnow = Cvar_VariableIntegerValue( "g_gametype" );
+		}
+		if ( !SV_ArenaAllowsGametype( map, gtnow ) ) {
+			Com_Printf( "^1%s is not marked for that gametype.^7\n", map ); /* RWA-GT */
+			return;
+		}
+		if ( Cmd_Argc() >= 3 ) {
+			Cvar_Set( "g_gametype", va( "%d", gtnow ) );
+		}
+	}
+
+
+		Com_sprintf( expanded, sizeof( expanded ), "maps/%s.bsp", map );
 	// bypass pure check so we can open downloaded map
 	FS_BypassPure();
 	len = FS_FOpenFileRead( expanded, NULL, qfalse );

@@ -74,6 +74,19 @@ void G_ReadClientSessionData( gclient_t *client ) {
 	if ( (unsigned)client->sess.sessionTeam >= TEAM_NUM_TEAMS ) {
 		client->sess.sessionTeam = TEAM_SPECTATOR;
 	}
+
+	/* RWA-GT: FFA leftover TEAM_FREE cannot play CTF/TDM — pick a team.
+	   SPECTATOR stays spectator. */
+	if ( g_gametype.integer >= GT_TEAM
+		&& client->sess.sessionTeam == TEAM_FREE ) {
+		client->sess.sessionTeam = PickTeam( (int)(client - level.clients) );
+	}
+	/* RWA-GT: red/blue leftover cannot play FFA/duel */
+	if ( g_gametype.integer < GT_TEAM
+		&& ( client->sess.sessionTeam == TEAM_RED
+		  || client->sess.sessionTeam == TEAM_BLUE ) ) {
+		client->sess.sessionTeam = TEAM_FREE;
+	}
 }
 
 

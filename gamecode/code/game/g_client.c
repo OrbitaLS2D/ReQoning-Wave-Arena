@@ -908,6 +908,17 @@ void ClientBegin( int clientNum ) {
 	client->ps.eFlags = flags;
 	client->ps.persistant[PERS_SPAWN_COUNT] = spawns;
 
+	/* RWA-GT: FFA leftover TEAM_FREE is invalid once the map is a team mode */
+	if ( g_gametype.integer >= GT_TEAM
+		&& client->sess.sessionTeam == TEAM_FREE ) {
+		client->sess.sessionTeam = PickTeam( clientNum );
+	}
+	if ( g_gametype.integer < GT_TEAM
+		&& ( client->sess.sessionTeam == TEAM_RED
+		  || client->sess.sessionTeam == TEAM_BLUE ) ) {
+		client->sess.sessionTeam = TEAM_FREE;
+	}
+
 	// locate ent at a spawn point
 	ClientSpawn( ent );
 

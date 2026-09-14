@@ -1968,28 +1968,57 @@ static void CL_Systeminfo_f( void ) {
 }
 
 
-static void CL_CompleteCallvote(const char *args, int argNum )
-{
-	if( argNum >= 2 )
-	{
-		// Skip "callvote "
-		const char *p = Com_SkipTokens( args, 1, " " );
 
-		if ( p > args )
-			Field_CompleteCommand( p, qtrue, qtrue );
+static void CL_Callvote_f( void ) { /* RWA-CV: send "cv ..." not args-only */
+	if ( cls.state != CA_ACTIVE || clc.demoplaying ) {
+		Com_Printf( "Not connected to a server.\n" );
+		return;
+	}
+	if ( Cmd_Argc() < 2 ) {
+		CL_AddReliableCommand( "cv", qfalse );
+	} else {
+		CL_AddReliableCommand( va( "cv %s", Cmd_ArgsFrom( 1 ) ), qfalse );
+	}
+}
+
+static qboolean CL_MapVoteHidden( const char *name ) { /* RWA-CV */
+	if ( !name || !*name )
+		return qfalse;
+	if ( !Q_stricmp( name, "texturegrab" ) )
+		return qtrue;
+	if ( !Q_stricmp( name, "test_bigbox" ) )
+		return qtrue;
+	return qfalse;
+}
+
+static void CL_CompleteCallvote( const char *args, int argNum ) { /* RWA-CV */
+	const char *p;
+	char verb[32];
+	int n;
+
+	if ( argNum < 2 )
+		return;
+
+	p = Com_SkipTokens( args, 1, " " );
+	if ( argNum == 2 ) {
+		Field_CompleteCommand( p, qtrue, qtrue );
+		return;
+	}
+
+	n = 0;
+	while ( *p && *p != ' ' && n < (int)sizeof( verb ) - 1 ) {
+		verb[n++] = *p++;
+	}
+	verb[n] = '\0';
+
+	if ( !Q_stricmp( verb, "map" ) && argNum == 3 ) {
+		Field_CompleteFilenameSkip( "maps", "bsp", qtrue,
+			FS_MATCH_ANY | FS_MATCH_STICK, CL_MapVoteHidden );
+		return;
 	}
 }
 
 
-//====================================================================
-
-/*
-=================
-CL_DownloadsComplete
-
-Called when all downloading has been completed
-=================
-*/
 static void CL_DownloadsComplete( void ) {
 
 #ifdef USE_CURL
@@ -2048,7 +2077,9 @@ static void CL_DownloadsComplete( void ) {
 
 	if ( clc.demofile == FS_INVALID_HANDLE ) {
 		Cmd_AddCommand( "callvote", NULL );
-		Cmd_SetCommandCompletionFunc( "callvote", CL_CompleteCallvote );
+
+	Cmd_SetCommandCompletionFunc( "cv", CL_CompleteCallvote ); /* RWA-CV */
+	Cmd_SetCommandCompletionFunc( "callvote", CL_CompleteCallvote );
 	}
 
 	// set pure checksums
@@ -4038,6 +4069,9 @@ void CL_Init( void ) {
 	// register client commands
 	//
 	Cmd_AddCommand ("cmd", CL_ForwardToServer_f);
+	Cmd_AddCommand( "cv", CL_Callvote_f ); /* RWA-CV once */
+	Cmd_SetCommandCompletionFunc( "cv", CL_CompleteCallvote );
+	Cmd_SetCommandCompletionFunc( "callvote", CL_CompleteCallvote );
 	Cmd_AddCommand ("configstrings", CL_Configstrings_f);
 	Cmd_AddCommand ("clientinfo", CL_Clientinfo_f);
 	Cmd_AddCommand ("snd_restart", CL_Snd_Restart_f);

@@ -1350,11 +1350,14 @@ static const char *voteCommands[] = {
 	"kick",
 	"clientkick",
 	"g_gametype",
+	"gt", /* RWA-CV */
+	"gametype",
 	"g_unlagged",
 	"g_warmup",
 	"timelimit",
 	"fraglimit",
 	"capturelimit"
+	"warmup",
 };
 
 
@@ -1365,6 +1368,148 @@ ValidVoteCommand
 Input string can be modified by overwriting gametype number instead of text value, for example
 ==================
 */
+
+static void G_PrintVoteUsage( int clientNum, const char *cmd ) { /* RWA-CV */
+	if ( !Q_stricmp( cmd, "timelimit" ) ) {
+		trap_SendServerCommand( clientNum,
+			"print \"^3Usage:^7 /cv timelimit <min>\nround time in minutes\n\"" );
+		return;
+	}
+	if ( !Q_stricmp( cmd, "fraglimit" ) ) {
+		trap_SendServerCommand( clientNum,
+			"print \"^3Usage:^7 /cv fraglimit <n>\nfrag win limit\n\"" );
+		return;
+	}
+	if ( !Q_stricmp( cmd, "capturelimit" ) ) {
+		trap_SendServerCommand( clientNum,
+			"print \"^3Usage:^7 /cv capturelimit <n>\nflag cap win limit\n\"" );
+		return;
+	}
+	if ( !Q_stricmp( cmd, "g_warmup" ) || !Q_stricmp( cmd, "warmup" ) ) {
+		trap_SendServerCommand( clientNum,
+			"print \"^3Usage:^7 /cv warmup <sec>\nwarmup length in seconds  (g_warmup)\n\"" );
+		return;
+	}
+	if ( !Q_stricmp( cmd, "kick" ) ) {
+		trap_SendServerCommand( clientNum,
+			"print \"^3Usage:^7 /cv kick <player>\nkick by name\n\"" );
+		return;
+	}
+	if ( !Q_stricmp( cmd, "clientkick" ) ) {
+		trap_SendServerCommand( clientNum,
+			"print \"^3Usage:^7 /cv clientkick <slot>\nkick by slot number\n\"" );
+		return;
+	}
+	trap_SendServerCommand( clientNum,
+		va( "print \"^3Usage:^7 /cv %s <params>\n\"", cmd ) );
+}
+
+static void G_PrintVoteGTHelp( int clientNum ) { /* RWA-CV */
+	trap_SendServerCommand( clientNum,
+		"print \""
+		"^3Usage:^7 /cv gametype <name>\n"
+		"change gametype on this map  (gt, g_gametype)\n"
+		"\n"
+		"  ^20^7  ffa      free for all\n"
+		"  ^21^7  duel     1v1  (1v1, tourney)\n"
+		"  ^23^7  tdm      team deathmatch\n"
+		"  ^24^7  ctf      capture the flag\n"
+		"  ^25^7  1fctf    one flag  (oneflag)\n"
+		"  ^26^7  ovld     destroy the obelisk  (overload)\n"
+		"  ^27^7  harv     harvest skulls  (harvester)\n"
+		"\"" );
+}
+
+static void G_PrintVoteHelp( int clientNum ) { /* RWA-CV */
+	trap_SendServerCommand( clientNum,
+		"print \""
+		"^3Available callvote commands are:^7\n"
+		"^3-------------------------------^7\n"
+		"^5map^7            change map  [gametype]\n"
+		"^5map_restart^7    restart this map\n"
+		"^5nextmap^7        next in rotation\n"
+		"^5gametype^7       change gametype  (gt, g_gametype)\n"
+		"^5kick^7           kick by name\n"
+		"^5clientkick^7     kick by slot\n"
+		"^5timelimit^7      round minutes\n"
+		"^5fraglimit^7      frag win limit\n"
+		"^5capturelimit^7   flag cap win limit\n"
+		"^5warmup^7        warmup seconds  (g_warmup)\n"
+		"\n"
+		"^3Usage:^7 /cv <command> <params>\n"
+		"\"" );
+}
+
+
+static qboolean G_MapIsObjective( const char *name ) { /* RWA-CV */
+	return G_ArenaAllowsGametype( name, GT_CTF )
+		|| G_ArenaAllowsGametype( name, GT_1FCTF )
+		|| G_ArenaAllowsGametype( name, GT_OBELISK )
+		|| G_ArenaAllowsGametype( name, GT_HARVESTER );
+}
+
+static qboolean G_MapVoteHidden( const char *name ) { /* RWA-CV */
+	if ( !Q_stricmp( name, "texturegrab" ) )
+		return qtrue;
+	if ( !Q_stricmp( name, "test_bigbox" ) )
+		return qtrue;
+	return qfalse;
+}
+
+static void G_PrintMapGroup( int clientNum, const char *list, int n,
+	const char *title, int wantgt ) { /* RWA-CV */
+	char name[MAX_QPATH];
+	char line[64];
+	char chunk[900];
+	const char *p;
+	int i, len, pos, keep;
+
+	trap_SendServerCommand( clientNum, va( "print \"%s\n\"", title ) );
+	p = list;
+	chunk[0] = '\0';
+	pos = 0;
+	for ( i = 0; i < n; i++, p += len + 1 ) {
+		len = (int)strlen( p );
+		Q_strncpyz( name, p, sizeof( name ) );
+		if ( len > 4 && !Q_stricmp( name + len - 4, ".bsp" ) )
+			name[len - 4] = '\0';
+		if ( G_MapVoteHidden( name ) )
+			continue; /* RWA-CV hide */
+		if ( wantgt < 0 )
+			keep = !G_MapIsObjective( name );
+		else
+			keep = G_ArenaAllowsGametype( name, wantgt );
+		if ( !keep )
+			continue;
+		Com_sprintf( line, sizeof( line ), "  ^5%-16s^7", name );
+		if ( (int)strlen( chunk ) + (int)strlen( line ) > 220 ) {
+			Q_strcat( chunk, sizeof( chunk ), "\n" );
+			trap_SendServerCommand( clientNum, va( "print \"%s\"", chunk ) );
+			chunk[0] = '\0';
+		}
+		Q_strcat( chunk, sizeof( chunk ), line );
+		pos++;
+		if ( ( pos % 4 ) == 0 )
+			Q_strcat( chunk, sizeof( chunk ), "\n" );
+	}
+	if ( chunk[0] ) {
+		Q_strcat( chunk, sizeof( chunk ), "\n" );
+		trap_SendServerCommand( clientNum, va( "print \"%s\"", chunk ) );
+	}
+}
+
+static void G_PrintVoteMaps( int clientNum ) { /* RWA-CV */
+	static char list[65536];
+	int n;
+
+	n = trap_FS_GetFileList( "maps", ".bsp", list, sizeof( list ) );
+	G_PrintMapGroup( clientNum, list, n, "^3FFA / DUEL / TDM^7", -1 );
+	G_PrintMapGroup( clientNum, list, n, "^3CTF^7", GT_CTF );
+	G_PrintMapGroup( clientNum, list, n, "^31FCTF^7", GT_1FCTF );
+	G_PrintMapGroup( clientNum, list, n, "^3OVLD^7", GT_OBELISK );
+	G_PrintMapGroup( clientNum, list, n, "^3HARV^7", GT_HARVESTER );
+}
+
 static qboolean ValidVoteCommand( int clientNum, char *command ) 
 {
 	char buf[ MAX_CVAR_VALUE_STRING ];
@@ -1389,7 +1534,17 @@ static qboolean ValidVoteCommand( int clientNum, char *command )
 	while ( *command == ' ' || *command == '\t' )
 		command++;
 
-	for ( i = 0; i < ARRAY_LEN( voteCommands ); i++ ) {
+	
+	/* RWA-CV: gt / gametype == g_gametype */
+	if ( !Q_stricmp( buf, "gt" ) || !Q_stricmp( buf, "gametype" ) ) {
+		Q_strncpyz( buf, "g_gametype", sizeof( buf ) );
+	}
+	if ( !Q_stricmp( buf, "warmup" ) ) { /* RWA-CV */
+		Q_strncpyz( buf, "g_warmup", sizeof( buf ) );
+	}
+
+
+for ( i = 0; i < ARRAY_LEN( voteCommands ); i++ ) {
 		if ( !Q_stricmp( buf, voteCommands[i] ) ) {
 			break;
 		}
@@ -1398,41 +1553,120 @@ static qboolean ValidVoteCommand( int clientNum, char *command )
 	if ( i == ARRAY_LEN( voteCommands ) ) {
 		trap_SendServerCommand( clientNum, "print \"Invalid vote command.\nVote commands are: \n"
 			" g_gametype <n|ffa|duel|tdm|ctf>\n"
-			" map_restart, map <mapname>, rotate [round], nextmap\n"
+			" map_restart, map <mapname> [gt], rotate [round], nextmap\n"
 			" kick <player>, clientkick <clientnum>\n"
-			" g_unlagged <0|1>, g_warmup <-1|0|seconds>\n"
+			" <0|1>, g_warmup <-1|0|seconds>\n"
 			" timelimit <time>, fraglimit <frags>, capturelimit <captures>.\n\"" );
 		return qfalse;
 	}
 
-	if ( Q_stricmp( buf, "g_gametype" ) == 0 )
+	if ( Q_stricmp( buf, "g_unlagged" ) == 0 ) {
+		trap_SendServerCommand( clientNum,
+			"print \"^1g_unlagged is not votable.^7\n\"" ); /* RWA-CV */
+		return qfalse;
+	}
+
+	if ( Q_stricmp( buf, "g_gametype" ) == 0 && !command[0] ) {
+		G_PrintVoteGTHelp( clientNum ); /* RWA-CV: empty gt help */
+		return qfalse;
+	}
+
+	if ( Q_stricmp( buf, "g_gametype" ) == 0
+		|| Q_stricmp( buf, "gt" ) == 0
+		|| Q_stricmp( buf, "gametype" ) == 0 )
 	{
-		if ( !Q_stricmp( command, "ffa" ) ) i = GT_FFA;
-		else if ( !Q_stricmp( command, "duel" ) ) i = GT_TOURNAMENT;
-		else if ( !Q_stricmp( command, "tdm" ) ) i = GT_TEAM;
-		else if ( !Q_stricmp( command, "ctf" ) ) i = GT_CTF;
-		else 
-		{
-			i = atoi( command );
-			if( i == GT_SINGLE_PLAYER || i < GT_FFA || i >= GT_MAX_GAME_TYPE ) {
-				trap_SendServerCommand( clientNum, va( "print \"Invalid gametype %i.\n\"", i ) );
-				return qfalse;
-			}
+		if ( !command[0] ) { /* RWA-CV */
+			G_PrintVoteGTHelp( clientNum );
 			return qfalse;
 		}
-
-		// handle string values
+		i = G_GametypeForName( command ); /* RWA-GT */
+		if ( i < 0 ) {
+			trap_SendServerCommand( clientNum,
+				va( "print \"Invalid gametype %s.\n\"", command ) );
+			return qfalse;
+		}
+				{
+			char curmap[MAX_QPATH];
+			/* RWA-CV: gt vs current map */
+			trap_Cvar_VariableStringBuffer( "mapname", curmap, sizeof( curmap ) );
+			if ( curmap[0] && !G_ArenaAllowsGametype( curmap, i ) ) {
+				trap_SendServerCommand( clientNum,
+					va( "print \"^1%s is not marked for %s^7\n\"",
+						curmap, G_NameForGametype( i ) ) );
+				return qfalse;
+			}
+		}
 		BG_sprintf( base, "g_gametype %i", i );
-
 		return qtrue;
 	}
 
 	if ( Q_stricmp( buf, "map" ) == 0 ) {
-		if ( !G_MapExist( command ) ) {
-			trap_SendServerCommand( clientNum, va( "print \"No such map on server: %s.\n\"", command ) );
+		char mapname[MAX_QPATH];
+		char gtarg[32];
+		const char *pp;
+		int gi, n;
+		/* RWA-CV: /cv map with no name lists maps */
+		if ( !command[0] ) {
+			trap_SendServerCommand( clientNum,
+			"print \"^3Usage:^7 /cv map <name> [gametype]\nchange map, optional gametype\n\n\"" ); /* RWA-CV */
+		G_PrintVoteMaps( clientNum );
 			return qfalse;
-		} 
+		}
+		/* RWA-GT: cv map <map> [gt] */
+		pp = command;
+		n = 0;
+		while ( *pp && *pp != ' ' && n < MAX_QPATH - 1 ) {
+			mapname[n++] = *pp++;
+		}
+		mapname[n] = '\0';
+		while ( *pp == ' ' ) {
+			pp++;
+		}
+		n = 0;
+		while ( *pp && *pp != ' ' && n < (int)sizeof( gtarg ) - 1 ) {
+			gtarg[n++] = *pp++;
+		}
+		gtarg[n] = '\0';
+		if ( G_MapVoteHidden( mapname ) ) { /* RWA-CV */
+			trap_SendServerCommand( clientNum,
+				va( "print \"^1%s is not votable.^7\n\"", mapname ) );
+			return qfalse;
+		}
+		if ( !G_MapExist( mapname ) ) {
+			trap_SendServerCommand( clientNum,
+				va( "print \"No such map on server: %s.\n\"", mapname ) );
+			return qfalse;
+		}
+		if ( gtarg[0] ) {
+			gi = G_GametypeForName( gtarg ); /* RWA-GT */
+			if ( gi < 0 ) {
+				trap_SendServerCommand( clientNum,
+					va( "print \"Invalid gametype %s.\n\"", gtarg ) );
+				return qfalse;
+			}
+		} else {
+			gi = g_gametype.integer; /* RWA-GT: keep current unless gt arg */
+		}
+		if ( !G_ArenaAllowsGametype( mapname, gi ) ) {
+			trap_SendServerCommand( clientNum,
+				va( "print \"^1%s is not marked for %s.^7\n\"",
+					mapname, G_NameForGametype( gi ) ) );
+			return qfalse;
+		}
+		/* RWA-GT: always set gt then map (home or explicit) */
+		if ( gtarg[0] ) {
+			BG_sprintf( base, "g_gametype %i; map %s", gi, mapname );
+		} else {
+			BG_sprintf( base, "map %s", mapname ); /* RWA-CV map-only */
+		}
 		return qtrue;
+	}
+
+if ( !command[0]
+		&& Q_stricmp( buf, "map_restart" )
+		&& Q_stricmp( buf, "nextmap" ) ) {
+		G_PrintVoteUsage( clientNum, buf ); /* RWA-CV */
+		return qfalse;
 	}
 
 	if ( Q_stricmp( buf, "nextmap" ) == 0 ) {
@@ -1489,8 +1723,10 @@ void Cmd_CallVote_f( gentity_t *ent ) {
 
 	// split by ';' seperators
 	n = Com_Split( arg, argn, ARRAY_LEN( argn ), ';' );
-	if ( n == 0 || *argn[0] == '\0' ) 
-		return; // empty callvote command?
+	if ( n == 0 || *argn[0] == '\0' ) {
+		G_PrintVoteHelp( ent - g_entities ); /* RWA-CV */
+		return;
+	}
 
 	// validate all split commands
 	for ( i = 0; i < n; i++ ) {
@@ -1960,7 +2196,7 @@ void ClientCommand( int clientNum ) {
 		Cmd_Team_f (ent);
 	else if (Q_stricmp (cmd, "where") == 0)
 		Cmd_Where_f (ent);
-	else if (Q_stricmp (cmd, "callvote") == 0)
+	else if (Q_stricmp (cmd, "callvote") == 0 || Q_stricmp (cmd, "cv") == 0) /* RWA-CV */
 		Cmd_CallVote_f (ent);
 	else if (Q_stricmp (cmd, "vote") == 0)
 		Cmd_Vote_f (ent);
