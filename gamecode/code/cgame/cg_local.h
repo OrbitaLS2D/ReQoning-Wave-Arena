@@ -1137,7 +1137,7 @@ typedef struct {
   	unsigned int	g_grappleDelayTime;
 	unsigned int	g_sgPelletSpread;
 	unsigned int	g_sgPellets;
-
+	int				g_unlagged;
 	float			fov;		// clamped cg_fov value
 	float			zoomFov;	// clamped cg_zoomFov value
 
@@ -1364,7 +1364,7 @@ void CG_MissileHitWall( weapon_t weapon, int clientNum, vec3_t origin, vec3_t di
 void CG_MissileHitPlayer( int weapon, vec3_t origin, vec3_t dir, int entityNum );
 void CG_ShotgunFire( entityState_t *es );
 void CG_Bullet( vec3_t origin, int sourceEntityNum, vec3_t normal, qboolean flesh, int fleshEntityNum );
-
+void CG_PredictWeaponEffects( centity_t *cent );
 void CG_RailTrail( const clientInfo_t *ci, const vec3_t start, const vec3_t end );
 void CG_GrappleTrail( centity_t *ent, const weaponInfo_t *wi );
 void CG_AddViewWeapon (playerState_t *ps);
