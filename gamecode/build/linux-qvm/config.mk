@@ -1,5 +1,3 @@
-PK3 = pak3a.pk3
-
 basedir = ../../code
 
 QADIR = $(basedir)/game

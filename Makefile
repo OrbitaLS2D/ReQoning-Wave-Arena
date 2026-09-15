@@ -1,6 +1,6 @@
 # ReQoning Wave Arena — run inside distrobox q3dev:
 #   make          # engine + gamecode + pak + install
-#   make menus    # only repack ui into rwapak1.pk3 (no compile)
+#   make menus    # only repack ui into rwapak0.pk3 (no compile)
 
 PREFIX      ?= $(HOME)/RWA
 ARCH        ?= x86_64
@@ -9,8 +9,8 @@ JOBS        ?= $(shell nproc)
 ENGINE      := engine
 ENGINE_OUT  := $(ENGINE)/build/release-linux-$(ARCH)
 QVMDIR      := gamecode/build/linux-qvm
-STAGE       := build/rwapak1
-PK3         := build/rwapak1.pk3
+STAGE       := build/rwapak0
+PK3         := build/rwapak0.pk3
 
 BINS := reqwa.x64 reqwa.ded.x64 reqwa_opengl_$(ARCH).so reqwa_vulkan_$(ARCH).so
 
@@ -20,8 +20,8 @@ all: engine gamecode pak install
 
 help:
 	@echo "make          - build everything and install to $(PREFIX)"
-	@echo "make menus    - pack .menu files into rwapak1.pk3 (no compile)"
-	@echo "make install  - copy bins + rwapak1.pk3 to $(PREFIX)"
+	@echo "make menus    - pack .menu files into rwapak0.pk3 (no compile)"
+	@echo "make install  - copy bins + rwapak0.pk3 to $(PREFIX)"
 
 engine:
 	$(MAKE) -C $(ENGINE) -j$(JOBS)
@@ -54,7 +54,7 @@ menus:
 	@rm -f $(PK3)
 	@cd $(STAGE) && zip -r -9 "$(CURDIR)/$(PK3)" .
 	@$(MAKE) install-pak
-	@echo "rwapak1.pk3 updated"
+	@echo "rwapak0.pk3 updated"
 
 dirs:
 	mkdir -p $(PREFIX)/baserwa \
@@ -74,8 +74,9 @@ install-pak: dirs $(PK3)
 	      $(PREFIX)/baserwa/zzrwa.pk3 \
 	      $(PREFIX)/baserwa/zz_rwa.pk3 \
 	      $(PREFIX)/baserwa/pak3a.pk3 \
-	      $(PREFIX)/baserwa/z_ta.pk3
-	cp -v $(PK3) $(PREFIX)/baserwa/rwapak1.pk3
+	      $(PREFIX)/baserwa/z_ta.pk3 \
+	      $(PREFIX)/baserwa/rwapak1.pk3
+	cp -v $(PK3) $(PREFIX)/baserwa/rwapak0.pk3
 	@if [ -d assets/ui ]; then mkdir -p $(PREFIX)/baserwa/ui && cp -a assets/ui/. $(PREFIX)/baserwa/ui/; fi
 
 install-docs: dirs

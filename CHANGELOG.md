@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.2.2 — 2026-09-14
+
+- Game pak is `baserwa/rwapak0.pk3` only. `pak3a.pk3` and `rwapak1.pk3` are not built.
+
 ## 0.2.1 — 2026-09-14
 
 - `/cv capturelimit` works (missing comma had glued it to warmup).
@@ -19,7 +23,7 @@ First tracked release. Engine and gamecode both report **RWA 0.2.0**.
 - Extra maps go in `~/RWA/maps/`.
 
 ### Build
-- One `make` builds the engine, VMs, `rwapak1.pk3`, and installs to `~/RWA`.
+- One `make` builds the engine, VMs, `rwapak0.pk3`, and installs to `~/RWA`.
 - Binaries: `reqwa.x64` / `reqwa.ded.x64`.
 - Folder layout: `baserwa/`, `idassets/baseq3/`, `idassets/missionpack/`, `maps/`.
 

@@ -42,7 +42,7 @@ Do not flatten this. Names matter.
     |-- play.sh                        Linux launcher
     |-- README.txt
     |-- baserwa/
-    |   `-- rwapak1.pk3                ships with the game
+    |   `-- rwapak0.pk3                ships with the game
     |-- idassets/
     |   |-- baseq3/                    YOU copy Q3 paks here
     |   |   |-- pak0.pk3
@@ -111,7 +111,7 @@ Steam is usually:
 
 TA maps then work. The game still runs without the missionpack folder.
 
-Do not copy id vm/ files. This game uses baserwa/rwapak1.pk3.
+Do not copy id vm/ files. This game uses baserwa/rwapak0.pk3.
 OSP, CPMA, and other mods are not loaded.
 
 Linux

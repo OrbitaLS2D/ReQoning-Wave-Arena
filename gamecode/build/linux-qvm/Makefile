@@ -5,15 +5,12 @@ qa_asm = $(call srcs,$(QA_SRC),vm/game)
 cg_asm = $(call srcs,$(CG_SRC),vm/cgame)
 ui_asm = $(call srcs,$(UI_SRC),vm/ui)
 
-all: dirs $(PK3)
+all: dirs vm/qagame.qvm vm/cgame.qvm vm/ui.qvm
 
 dirs:
 	mkdir -p vm/game vm/cgame vm/ui
 
 .PHONY: all dirs
-
-$(PK3): vm/qagame.qvm vm/cgame.qvm vm/ui.qvm
-	$(7Z) $@ vm/*.qvm vm/*.jts ../../assets/*
 
 cc = cd vm/$1 && $(Q3LCC) $2 -o $(notdir $@).tmp ../../$< && mv $(notdir $@).tmp $(notdir $@)
 qa_cc = $(call cc,game,$(QA_CFLAGS))
