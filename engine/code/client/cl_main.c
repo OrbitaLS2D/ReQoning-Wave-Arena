@@ -3875,14 +3875,14 @@ static void CL_InitGLimp_Cvars( void )
 	Cvar_SetDescription( r_fullscreen, "Fullscreen mode. Set to 0 for windowed mode." );
 	r_customPixelAspect = Cvar_Get( "r_customPixelAspect", "1", CVAR_ARCHIVE_ND | CVAR_LATCH );
 	Cvar_SetDescription( r_customPixelAspect, "Enables custom aspect of the screen, with \\r_mode -1." );
-	r_customwidth = Cvar_Get( "r_customWidth", "1600", CVAR_ARCHIVE | CVAR_LATCH );
+	r_customwidth = Cvar_Get( "r_customWidth", "1920", CVAR_ARCHIVE | CVAR_LATCH ); /* RWA-DEF */
 	Cvar_CheckRange( r_customwidth, "4", NULL, CV_INTEGER );
 	Cvar_SetDescription( r_customwidth, "Custom width to use with \\r_mode -1." );
-	r_customheight = Cvar_Get( "r_customHeight", "1024", CVAR_ARCHIVE | CVAR_LATCH );
+	r_customheight = Cvar_Get( "r_customHeight", "1080", CVAR_ARCHIVE | CVAR_LATCH ); /* RWA-DEF */
 	Cvar_CheckRange( r_customheight, "4", NULL, CV_INTEGER );
 	Cvar_SetDescription( r_customheight, "Custom height to use with \\r_mode -1." );
 
-	r_colorbits = Cvar_Get( "r_colorbits", "0", CVAR_ARCHIVE_ND | CVAR_LATCH );
+	r_colorbits = Cvar_Get( "r_colorbits", "32", CVAR_ARCHIVE_ND | CVAR_LATCH ); /* RWA-DEF */
 	Cvar_CheckRange( r_colorbits, "0", "32", CV_INTEGER );
 	Cvar_SetDescription( r_colorbits, "Sets color bit depth, set to 0 to use desktop settings." );
 

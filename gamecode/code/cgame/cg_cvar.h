@@ -14,7 +14,7 @@ CG_CVAR( cg_ignore, "cg_ignore", "0", 0 ) // used for debugging
 CG_CVAR( cg_autoswitch, "cg_autoswitch", "1", CVAR_ARCHIVE )
 CG_CVAR( cg_drawGun, "cg_drawGun", "1", CVAR_ARCHIVE )
 CG_CVAR( cg_zoomFov, "cg_zoomfov", "22.5", CVAR_ARCHIVE )
-CG_CVAR( cg_fov, "cg_fov", "90", CVAR_ARCHIVE )
+CG_CVAR( cg_fov, "cg_fov", "100", CVAR_ARCHIVE ) /* RWA-DEF */
 CG_CVAR( cg_viewsize, "cg_viewsize", "100", CVAR_ARCHIVE )
 CG_CVAR( cg_shadows, "cg_shadows", "1", CVAR_ARCHIVE )
 CG_CVAR( cg_gibs, "cg_gibs", "1", CVAR_ARCHIVE )

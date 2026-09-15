@@ -146,3 +146,7 @@ Credits
 Engine: Quake3e
 Gamecode: missionpackplus
 Original games: id Software — Quake III Arena / Team Arena
+
+Settings are saved to baserwa/rwaconfig.cfg (server: rwaconfig_server.cfg).
+Do not copy q3config.cfg from Quake 3 into idassets. Paks only.
+default.cfg in rwapak0.pk3 is the factory file; leave that name alone.

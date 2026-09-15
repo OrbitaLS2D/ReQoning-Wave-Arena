@@ -35,7 +35,7 @@ $(PK3): gamecode
 	@rm -rf $(STAGE)
 	@mkdir -p $(STAGE)/vm
 	@if [ -d gamecode/assets ]; then cp -a gamecode/assets/. $(STAGE)/; fi
-	@if [ -d assets/ui ]; then mkdir -p $(STAGE)/ui && cp -a assets/ui/. $(STAGE)/ui/; fi
+	@if [ -d assets ]; then cp -a assets/. $(STAGE)/; fi
 	@cp -a $(QVMDIR)/vm/*.qvm $(STAGE)/vm/
 	@cp -a $(QVMDIR)/vm/*.jts $(STAGE)/vm/ 2>/dev/null || true
 	@rm -f $(PK3)
@@ -48,7 +48,7 @@ menus:
 	@rm -rf $(STAGE)
 	@mkdir -p $(STAGE)/vm
 	@if [ -d gamecode/assets ]; then cp -a gamecode/assets/. $(STAGE)/; fi
-	@if [ -d assets/ui ]; then mkdir -p $(STAGE)/ui && cp -a assets/ui/. $(STAGE)/ui/; fi
+	@if [ -d assets ]; then cp -a assets/. $(STAGE)/; fi
 	@cp -a $(QVMDIR)/vm/*.qvm $(STAGE)/vm/
 	@cp -a $(QVMDIR)/vm/*.jts $(STAGE)/vm/ 2>/dev/null || true
 	@rm -f $(PK3)
@@ -70,6 +70,10 @@ install-bins: dirs
 	done
 
 install-pak: dirs $(PK3)
+	rm -f $(PREFIX)/idassets/baseq3/q3config.cfg \
+	     $(PREFIX)/idassets/baseq3/q3configx.cfg \
+	     $(PREFIX)/idassets/missionpack/q3config.cfg \
+	     $(PREFIX)/idassets/missionpack/q3configx.cfg
 	rm -f $(PREFIX)/baserwa/zz_ui.pk3 \
 	      $(PREFIX)/baserwa/zzrwa.pk3 \
 	      $(PREFIX)/baserwa/zz_rwa.pk3 \
@@ -77,7 +81,6 @@ install-pak: dirs $(PK3)
 	      $(PREFIX)/baserwa/z_ta.pk3 \
 	      $(PREFIX)/baserwa/rwapak1.pk3
 	cp -v $(PK3) $(PREFIX)/baserwa/rwapak0.pk3
-	@if [ -d assets/ui ]; then mkdir -p $(PREFIX)/baserwa/ui && cp -a assets/ui/. $(PREFIX)/baserwa/ui/; fi
 
 install-docs: dirs
 	@if [ -f INSTALL.txt ]; then cp -v INSTALL.txt $(PREFIX)/README.txt; else echo "NOTE: no INSTALL.txt"; fi

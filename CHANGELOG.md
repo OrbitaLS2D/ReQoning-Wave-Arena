@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.3.1
+- Modern video/audio/net defaults (desktop res, trilinear, 44 kHz, 125 fps, fov 100).
+- User settings saved as `rwaconfig.cfg` (not `q3config.cfg`) so Steam leftover configs cannot override RWA.
+- `default.cfg` is still the factory file in `rwapak0.pk3`.
+- Dedicated server uses `rwaconfig_server.cfg`.
+
+0.3.1 — 2026-09-14
+
+- Out-of-box defaults for 2026: desktop resolution, picmip 0, trilinear, anisotropy 16, VBO, 32-bit color/textures.
+- Memory: com_hunkMegs 256 (client) / 128 (dedicated), com_soundMegs 32, com_zoneMegs 12.
+- Net: rate 25000, snaps 40, cl_maxpackets 125, sv_fps 40.
+- cg_fov 100, s_khz 44, vsync off, com_maxfps 125.
+- `default.cfg` in rwapak0 overrides id/TA 1999 defaults.
+
 ## 0.3.0 — 2026-09-14
 
 - Play stock Quake III 1.32 demos (`/demo four`). Accepts `baseq3-1` and `missionpack-1` game versions.
