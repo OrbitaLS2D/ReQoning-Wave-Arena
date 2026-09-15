@@ -27,7 +27,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 // A user mod should never modify this file
 
 /* RWA-VER */
-#define Q3_VERSION            "RWA 0.2.0"
+#define Q3_VERSION            "RWA 0.3.0"
 #ifndef SVN_VERSION
   #define SVN_VERSION Q3_VERSION
 #endif

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.0 — 2026-09-14
+
+- Play stock Quake III 1.32 demos (`/demo four`). Accepts `baseq3-1` and `missionpack-1` game versions.
+- Engine and gamecode both report **RWA 0.3.0**.
+
 ## 0.2.2 — 2026-09-14
 
 - Game pak is `baserwa/rwapak0.pk3` only. `pak3a.pk3` and `rwapak1.pk3` are not built.
