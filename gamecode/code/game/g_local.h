@@ -751,7 +751,6 @@ void BotTestAAS(vec3_t origin);
 qboolean ParseMapRotation( void );
 void G_LoadMap( const char *map );
 qboolean G_MapExist( const char *map );
-int G_HomeGametype( const char *map ); /* RWA-GT */
 int G_GametypeForName( const char *s ); /* RWA-GT */
 const char *G_NameForGametype( int gt ); /* RWA-GT */
 qboolean G_ArenaAllowsGametype( const char *map, int gt ); /* RWA-GT */

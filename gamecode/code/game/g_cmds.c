@@ -1354,10 +1354,10 @@ static const char *voteCommands[] = {
 	"gametype",
 	"g_unlagged",
 	"g_warmup",
+	"warmup", /* RWA-CV */
 	"timelimit",
 	"fraglimit",
 	"capturelimit"
-	"warmup",
 };
 
 
@@ -1653,7 +1653,7 @@ for ( i = 0; i < ARRAY_LEN( voteCommands ); i++ ) {
 					mapname, G_NameForGametype( gi ) ) );
 			return qfalse;
 		}
-		/* RWA-GT: always set gt then map (home or explicit) */
+		/* RWA-GT: set gt only when named; map-only keeps current */
 		if ( gtarg[0] ) {
 			BG_sprintf( base, "g_gametype %i; map %s", gi, mapname );
 		} else {
@@ -1746,7 +1746,7 @@ void Cmd_CallVote_f( gentity_t *ent ) {
 	Com_sprintf( level.voteString, sizeof( level.voteString ), cmd );
 	Com_sprintf( level.voteDisplayString, sizeof( level.voteDisplayString ), "%s", level.voteString );
 
-	trap_SendServerCommand( -1, va( "print \"%s called a vote(%s).\n\"", ent->client->pers.netname, cmd ) );
+	trap_SendServerCommand( -1, va( "print \"%s^7 called a vote: ^2%s^7.\n\"", ent->client->pers.netname, cmd ) );
 
 	// start the voting, the caller automatically votes yes
 	level.voteTime = level.time;

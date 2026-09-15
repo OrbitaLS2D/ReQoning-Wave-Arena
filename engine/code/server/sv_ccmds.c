@@ -158,32 +158,45 @@ static int SV_GametypeForName( const char *s ) { /* RWA-GT */
 	static const char *names[] = {
 		"ffa", "duel", "tourney", "tournament", "1v1",
 		"sp", "tdm", "team", "ctf",
-		"1fctf", "overload", "obelisk", "harvester", "harvest"
+		"1fctf", "oneflag",
+		"overload", "ovld", "obelisk",
+		"harvester", "harvest", "harv"
 	};
-	static const int gts[] = { 0,1,1,1,1, 2,3,3,4, 5,6,6,7,7 };
+	static const int gts[] = { 0,1,1,1,1, 2,3,3,4, 5,5, 6,6,6, 7,7,7 };
 	char buf[32];
 	if ( !s || !s[0] ) {
 		return -1;
 	}
 	Q_strncpyz( buf, s, sizeof( buf ) );
 	Q_strlwr( buf );
-	if ( buf[0] >= '0' && buf[0] <= '9' ) {
-		i = atoi( buf );
-		if ( i < 0 || i > 7 || i == 2 ) {
-			return -1;
-		}
-		return i;
-	}
 	for ( i = 0; i < (int)ARRAY_LEN( names ); i++ ) {
 		if ( !Q_stricmp( buf, names[i] ) ) {
 			return gts[i];
+		}
+	}
+	/* RWA-GT: "1fctf" is not 1. Only a whole-token number counts. */
+	{
+		int digits, n;
+		digits = buf[0] ? 1 : 0;
+		for ( n = 0; buf[n]; n++ ) {
+			if ( buf[n] < '0' || buf[n] > '9' ) {
+				digits = 0;
+				break;
+			}
+		}
+		if ( digits ) {
+			n = atoi( buf );
+			if ( n < 0 || n > 7 || n == 2 ) {
+				return -1;
+			}
+			return n;
 		}
 	}
 	return -1;
 }
 
 static const char *SV_ArenaTokenForGT( int gt ) {
-	static const char *tok[] = { "ffa","tourney","single","team","ctf","ctf1","overload","harvester" };
+	static const char *tok[] = { "ffa","tourney","single","team","ctf","oneflag","overload","harvester" }; /* RWA-GT */
 	if ( gt < 0 || gt > 7 ) {
 		return "ffa";
 	}
@@ -254,6 +267,23 @@ static qboolean SV_ScanArenaBuf( char *buf, const char *map, char *typeOut, int 
 	return qfalse;
 }
 
+/* RWA-GT: white flag lives on TA maps; stock q3ctf* is two-flag only */
+static qboolean SV_MapSupports1FCTF( const char *map, const char *type ) {
+	if ( SV_TypeListHas( type, "oneflag" ) ) {
+		return qtrue;
+	}
+	if ( !Q_stricmpn( map, "mpteam", 6 ) ) {
+		return qtrue;
+	}
+	if ( !Q_stricmpn( map, "mpterra", 7 ) ) {
+		return qtrue;
+	}
+	if ( !Q_stricmpn( map, "mpq3ctf", 7 ) ) {
+		return qtrue;
+	}
+	return qfalse;
+}
+
 static qboolean SV_ArenaAllowsGametype( const char *map, int gt ) { /* RWA-GT */
 	char buf[65536];
 	char list[4096];
@@ -303,19 +333,11 @@ have:
 		return qfalse; /* RWA-GT: no type = not objective */
 	}
 	if ( SV_TypeListHas( type, SV_ArenaTokenForGT( gt ) ) ) return qtrue;
+	/* RWA-GT: 1fctf is a ctf layout; arenas often only say ctf */
+	if ( gt == 5 ) {
+		return SV_MapSupports1FCTF( map, type ); /* RWA-GT */
+	}
 	return qfalse;
-}
-
-static int SV_HomeGametype( const char *map ) { /* RWA-GT: ctf > 1fctf > ovld > harv > ffa */
-	if ( SV_ArenaAllowsGametype( map, 4 ) )
-		return 4;
-	if ( SV_ArenaAllowsGametype( map, 5 ) )
-		return 5;
-	if ( SV_ArenaAllowsGametype( map, 6 ) )
-		return 6;
-	if ( SV_ArenaAllowsGametype( map, 7 ) )
-		return 7;
-	return 0;
 }
 
 static void SV_Map_f( void ) {

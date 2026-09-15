@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.1 — 2026-09-14
+
+- `/cv capturelimit` works (missing comma had glued it to warmup).
+- `ovld`, `harv`, and `oneflag` are accepted gametype names.
+- `1fctf` is not parsed as duel. 1FCTF needs a white flag (TA mpteam*/mpterra*/mpq3ctf*, or arena oneflag).
+- Removed unused home-gametype helpers. Map-only votes keep the current mode.
+
+
 ## 0.2.0 — 2026-09-14
 
 First tracked release. Engine and gamecode both report **RWA 0.2.0**.

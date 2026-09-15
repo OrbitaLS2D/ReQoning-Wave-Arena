@@ -247,14 +247,18 @@ int G_GametypeForName( const char *s ) { /* RWA-GT: acronym -> GT_ number */
 		"ffa", "duel", "tourney", "tournament", "1v1",
 		"sp", "tdm", "team", "ctf",
 #ifdef MISSIONPACK
-		"1fctf", "overload", "obelisk", "harvester", "harvest",
+		"1fctf", "oneflag",
+		"overload", "ovld", "obelisk",
+		"harvester", "harvest", "harv",
 #endif
 	};
 	static const int gts[] = {
 		GT_FFA, GT_TOURNAMENT, GT_TOURNAMENT, GT_TOURNAMENT, GT_TOURNAMENT,
 		GT_SINGLE_PLAYER, GT_TEAM, GT_TEAM, GT_CTF,
 #ifdef MISSIONPACK
-		GT_1FCTF, GT_OBELISK, GT_OBELISK, GT_HARVESTER, GT_HARVESTER,
+		GT_1FCTF, GT_1FCTF,
+		GT_OBELISK, GT_OBELISK, GT_OBELISK,
+		GT_HARVESTER, GT_HARVESTER, GT_HARVESTER,
 #endif
 	};
 
@@ -263,17 +267,25 @@ int G_GametypeForName( const char *s ) { /* RWA-GT: acronym -> GT_ number */
 	}
 	Q_strncpyz( buf, s, sizeof( buf ) );
 	Q_strlwr( buf );
-	if ( buf[0] >= '0' && buf[0] <= '9' ) {
+	for ( i = 0; i < (int)ARRAY_LEN( names ); i++ ) {
+		if ( !Q_stricmp( buf, names[i] ) ) {
+			return gts[i];
+		}
+	}
+	/* RWA-GT: "1fctf" is not 1. Only a whole-token number counts. */
+	n = buf[0] ? 1 : 0;
+	for ( i = 0; buf[i]; i++ ) {
+		if ( buf[i] < '0' || buf[i] > '9' ) {
+			n = 0;
+			break;
+		}
+	}
+	if ( n ) {
 		n = atoi( buf );
 		if ( n == GT_SINGLE_PLAYER || n < 0 || n >= GT_MAX_GAME_TYPE ) {
 			return -1;
 		}
 		return n;
-	}
-	for ( i = 0; i < (int)ARRAY_LEN( names ); i++ ) {
-		if ( !Q_stricmp( buf, names[i] ) ) {
-			return gts[i];
-		}
 	}
 	return -1;
 }
@@ -382,6 +394,24 @@ static qboolean G_ScanArenaBuf( char *buf, const char *map, char *typeOut, int t
 	return qfalse;
 }
 
+/* RWA-GT: 1fctf needs team_CTF_neutralflag. q3ctf* do not have it.
+   id TA maps have it; their arenas often only say "ctf". */
+static qboolean G_MapSupports1FCTF( const char *map, const char *type ) {
+	if ( G_TypeListHas( type, "oneflag" ) ) {
+		return qtrue;
+	}
+	if ( !Q_stricmpn( map, "mpteam", 6 ) ) {
+		return qtrue;
+	}
+	if ( !Q_stricmpn( map, "mpterra", 7 ) ) {
+		return qtrue;
+	}
+	if ( !Q_stricmpn( map, "mpq3ctf", 7 ) ) {
+		return qtrue;
+	}
+	return qfalse;
+}
+
 qboolean G_ArenaAllowsGametype( const char *map, int gt ) { /* RWA-GT: no arena = allow */
 	static char buf[65536]; /* RWA-GT: QVM 32k local limit */
 	static char list[4096];
@@ -445,29 +475,12 @@ have:
 		return qtrue;
 	}
 	/* RWA-GT: 1fctf is a ctf layout; arenas often only say ctf */
-	if ( gt == GT_1FCTF && G_TypeListHas( type, "ctf" ) ) {
-		return qtrue;
-	}
-	if ( gt == GT_1FCTF && G_TypeListHas( type, "oneflag" ) ) {
-		return qtrue;
+	if ( gt == GT_1FCTF ) {
+		return G_MapSupports1FCTF( map, type ); /* RWA-GT */
 	}
 	return qfalse;
 }
 
-
-int G_HomeGametype( const char *map ) { /* RWA-GT: intended mode */
-	if ( G_ArenaAllowsGametype( map, GT_CTF ) )
-		return GT_CTF;
-#ifdef MISSIONPACK
-	if ( G_ArenaAllowsGametype( map, GT_1FCTF ) )
-		return GT_1FCTF;
-	if ( G_ArenaAllowsGametype( map, GT_OBELISK ) )
-		return GT_OBELISK;
-	if ( G_ArenaAllowsGametype( map, GT_HARVESTER ) )
-		return GT_HARVESTER;
-#endif
-	return GT_FFA;
-}
 
 void G_NormalizeGametype( void ) { /* RWA-GT */
 	int gt;
